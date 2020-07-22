@@ -243,7 +243,7 @@ class SimpleRegression:
         print("x2 ( {}        {} )".format(p3, p2))
         
         print("\n\n\n-######  ########----#############----############  ###########--########")
-        print("\n\n5# Calculer les coordonnées des observations dans le plan factoriel")
+        print("\n\n4# Calculer les coordonnées des observations dans le plan factoriel")
         def multiplyCenteredByMatrixX1(xbar1, xbar2, coord0, coord2):
             return (xbar1 * coord0) + (xbar2 * coord2)
         def multiplyCenteredByMatrixX2(xbar1, xbar2, coord1, coord3):
@@ -260,6 +260,8 @@ class SimpleRegression:
             correlationsX1.append(x1)
             correlationsX2.append(x2)
             print("{} |________| {} |_________| {} |_________| {} |_________| {} ".format(i+1, centeredListX1[i], centeredListX2[i], x1, x2))
+            
+    
             
         print("\n\n********** ********************************************************************* ")
         print("5. Calcul de la correlation empirique. (ration entre la covariance et les ecarts types)")
@@ -284,13 +286,43 @@ class SimpleRegression:
         print(" r = {} / {} * {} = {}".format(self.covX1X2, self.ecartTypeX1, self.ecartTypeX2, self.covX1X2 / (self.ecartTypeX1 * self.ecartTypeX2)))
         print(" r² = cov(x1, x2)² / (ecartTypeX1)² * (ecartTypeX2)²")
         print(" r²= {}² / {}² * {}² = {}".format(self.covX1X2, self.ecartTypeX1, self.ecartTypeX2, self.covX1X2 * self.covX1X2 / (self.ecartTypeX1 * self.ecartTypeX2 * self.ecartTypeX1 * self.ecartTypeX2)))
-        
+        print("r² c'est la proportion de variance expliquée par la regression")
         print("\n\nLa matrice de correlation est donc la suivante")
         print("    |     X1           X2")
         print("_______________________________________")
         print("X1  | ( {}         {} )".format(1, self.r))
         print("    |")
         print("X2  | ( {}         {} )".format(self.r, 1))
+
+        
+        print("Variance totale X1 = (n-1) * V(X1) = ", (len(self.dataList1)-1) * self.varianceX1)
+        print("Variance totale X1 = (n-1) * V(X2) = ", (len(self.dataList2)-1) * self.varianceX2)
+
+        
+        print("\n\nCalcul de  x1~' et x2~' ")
+        print("u = x~ * P <=> x~ = u * tP")
+        print("Pour U1:")
+        print("********** ********************************************************************* ")
+        print("u |----------| u1 |----------| x1'~ |----------+ x2'~ | ")
+        print("*********** ********************************************************************* ")
+        for i in range(len(centeredListX2)):
+            x1Prime = centeredListX1[i] *  p1
+            x2Prime = centeredListX1[i] *  p4
+            print("{} |________| {} |_________| {} |_________| {} |".format(i+1, centeredListX1[i], x1Prime, x2Prime))
+        print("Pour U2:")
+        print("********** ********************************************************************* ")
+        print("u |----------| u2 |----------| x1'~ |----------+ x2'~ | ")
+        print("*********** ********************************************************************* ")
+        x1PrimeList = []
+        x2PrimeList = []
+        for i in range(len(centeredListX2)):
+            x1Prime = centeredListX2[i] *  p1
+            x2Prime = centeredListX2[i] *  p4
+            x1PrimeList.append(x1Prime)
+            x2PrimeList.append(x2Prime)
+            print("{} |________| {} |_________| {} |_________| {} |".format(i+1, centeredListX2[i], x1Prime, x2Prime))
+            
+        
         print(self.ecartTypeX1 * self.dataList1[0])
         print((self.ecartTypeX1 * self.ecartTypeX1) / (len(self.dataList1) -1) + (self.ecartTypeX2 * self.ecartTypeX2) / (len(self.dataList1)-1))
         print(pow((self.covX1X2 / (self.ecartTypeX1)), 2))
@@ -306,12 +338,66 @@ class SimpleRegression:
             sumCarreesCorrX2 = sumCarreesCorrX2 + math.pow(correlationsX2[i] - multiplyCenteredByMatrixX2(centeredListX1[i], centeredListX2[i], p3, p2), 2)
         print(sumCarreesCorrX1) 
         print(sumCarreesCorrX2)
+        
+        print("\nTest de notre epsilon")
+        print("var(epsilon) / var(y) = 1 - R2 /// var(epsilon) = moy(Y)")
+        print("{} / {} = {}".format(self.covMatrix[2], self.covMatrix[0], self.covMatrix[2] / self.covMatrix[0]))
 
+        print(1 - self.r * self.r)        
+        print("\n\n################################################################")
+        print("Facteur X2")
+        print("SCE = SOMMEDESi (x2^i - moy(x2))² = ", end='')
+        SCE = 0
+        for i in range(len(centeredListX1)):
+            SCE = SCE + (pow(x2PrimeList[i]-self.meanX2, 2))
+        print(SCE)
+        
+        print("SCR = SOMMEDESi (x2i - x2^i)² = ", end='')
+        SCR = 0
+        for i in range(len(self.dataList1)):
+            SCR = SCR + (pow(self.dataList2[i] - x2PrimeList[i], 2))
+
+        print(SCR)
+        
+        print("SCT = SOMMEDESi (x2i - moy(x2))² = ", end='')
+        SCT = 0
+        for i in range(len(centeredListX2)):
+            SCT = SCT + (pow(self.dataList2[i]-self.meanX2, 2))
+        print(SCT)
+        print("///", (SCE - SCR)/SCT)
+        print("///", (SCE/SCT))
+        
+        
+        print("Facteur X1")
+        print("SCE = SOMMEDESi (x1^i - moy(x1))² = ", end='')
+        SCE = 0
+        for i in range(len(centeredListX1)):
+            SCE = SCE + (pow(x1PrimeList[i]-self.meanX1, 2))
+        print(SCE)
+        
+        print("SCR = SOMMEDESi (x1i - x1^i)² = ", end='')
+        SCR = 0
+        for i in range(len(self.dataList1)):
+            SCR = SCR + (pow(self.dataList1[i] - x1PrimeList[i], 2))
+
+        print(SCR)
+        
+        print("SCT = SOMMEDESi (x1i - moy(x1))² = ", end='')
+        SCT = 0
+        for i in range(len(centeredListX2)):
+            SCT = SCT + (pow(self.dataList1[i]-self.meanX1, 2))
+        print(SCT)
+        print("///", (SCE - SCR)/SCT)
+        print("///", (SCE/SCT))
+        
+a = [5, 3, 1, 3,  1, 1, 3, 1, 5, 7, 3]
+b = [6, 5, 3, 5,  5, 5, 5, 4, 5, 7, 5]
+c1 = [7, 1, 7, 7,  7, 1, 1, 1, 7, 4, 1]
 a = [16, 4, 3,  7, 2, 16, 18, 17, 13, 1, 13]
 b = [7, 8, 13, 10, 7,  9,  7,  8,  8, 8, 3]
-c = [6, 2, 5, 3, 6, 2, 5, 3, 7, 1, 4]
-d = [6, 5, 1, 3, 5, 3, 3, 1, 6, 0, 0]
-test = SimpleRegression(c, d)
+c = [2,2,1,3,1,3]
+d = [3,2,1,2,1,2]
+test = SimpleRegression(a, b)
 test.centerData()
 test.computeCovarianceMatrix()
 test.diagonaliseMatrix()
